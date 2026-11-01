@@ -1,0 +1,96 @@
+@import "tailwindcss";
+
+@theme {
+  /* پالت حالت تاریک (پیش‌فرض) */
+  --color-background: #080312;
+  --color-surface: #110620;
+  --color-silver: #E2E2E2;
+  --color-silverMuted: #8E8E9F;
+  --color-lavender: #B8A1FF;
+  
+  --font-sans: var(--font-vazirmatn), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, SFMono-Regular, monospace;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* مخفی کردن نشانگر موس پیش‌فرض در کل سایت */
+* {
+  cursor: none !important;
+}
+
+/* استایل‌های حالت تاریک */
+body {
+  background-color: var(--color-background);
+  color: var(--color-silver);
+  font-family: var(--font-sans);
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  background-image: 
+    radial-gradient(circle at 50% 30%, rgba(184, 161, 255, 0.05) 0%, transparent 60%),
+    radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.04) 1px, transparent 0);
+  background-size: 100% 100%, 32px 32px;
+  transition: background-color 0.4s ease, color 0.4s ease;
+}
+
+/* =========================================
+   پالت رنگی حالت روشن (کرم و بادمجانی)
+   ========================================= */
+html.light {
+  --color-background: #F3EBDD; /* کرم گرم */
+  --color-surface: #FBF8F2; /* کرم روشن‌تر */
+  --color-silver: #2A1B2E; /* متن تیره */
+  --color-silverMuted: #6B5A68;
+  --color-lavender: #4A1C40; /* بنفش بادمجانی */
+}
+
+/* هدر در حالت روشن */
+html.light header {
+  background-color: rgba(243, 235, 221, 0.85);
+  border-bottom-color: rgba(74, 28, 64, 0.1);
+}
+
+/* =========================================
+   اصلاحات مهم برای حالت روشن (دیباگ)
+   ========================================= */
+
+/* تبدیل تمام متن‌های سفید به بادمجانی */
+html.light .text-white {
+  color: #4A1C40 !important;
+}
+
+/* اطمینان از اینکه لینک‌های منو هم رنگ درستی بگیرند */
+html.light nav a.text-white {
+  color: #4A1C40 !important;
+}
+
+/* اطمینان از اینکه دکمه‌هایی که پس‌زمینه سفید دارند، متنشان تیره شود */
+html.light .bg-white {
+  background-color: #FDFBF7 !important;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.perspective-1000 {
+  perspective: 1000px;
+}
+/* =========================================
+   بک‌گراند نقطه‌چین بنفش برای فوتر در حالت روشن
+   ========================================= */
+html.light footer {
+  background-color: #F3EBDD; /* کرم گرم */
+  background-image: radial-gradient(circle at 1px 1px, rgba(74, 28, 64, 0.15) 1px, transparent 0) !important;
+  background-size: 24px 24px !important; /* فاصله نقطه‌ها */
+}
+
+/* برای اینکه نوار پایین فوتر (کپی‌رایت) یکدست بماند و نقطه‌چین نداشته باشد */
+html.light footer .bg-background {
+  background-color: #F3EBDD !important;
+  background-image: radial-gradient(circle at 1px 1px, rgba(74, 28, 64, 0.15) 1px, transparent 0) !important;
+  background-size: 24px 24px !important;
+}
