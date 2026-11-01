@@ -3,7 +3,7 @@
 import { useRef } from "react";
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import Link from "next/link";
-import { Project } from "@/types"; // مسیر اصلاح شد
+import { Project } from "@/type"; // مسیر اصلاح شد
 
 interface ProjectCardProps {
   project: Project;
