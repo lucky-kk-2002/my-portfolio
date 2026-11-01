@@ -3,7 +3,7 @@
 import { useRef } from "react";
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import Link from "next/link";
-import { Project } from "../../types";
+import { Project } from "@/types"; // مسیر اصلاح شد
 
 interface ProjectCardProps {
   project: Project;
@@ -62,7 +62,7 @@ export default function ProjectCard({ project }: ProjectCardProps) {
           <h3 className="text-xl font-bold text-white mb-2 group-hover:text-lavender transition-colors">{project.title}</h3>
           <p className="text-silverMuted text-sm leading-relaxed mb-6 flex-grow">{project.description}</p>
           <div className="flex flex-wrap gap-2 mt-auto" dir="ltr">
-            {project.techStack.map((tech, index) => (
+            {project.techStack.map((tech: string, index: number) => (
               <span key={index} className="text-[10px] font-mono text-silverMuted bg-background px-2 py-1 rounded-md border border-white/5">
                 {tech}
               </span>
