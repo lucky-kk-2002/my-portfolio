@@ -1,4 +1,11 @@
-import { Project } from "../type";
+export interface Project {
+  id: string;
+  title: string;
+  description: string;
+  techStack: string[];
+  imageUrl: string;
+  link: string;
+}
 
 export const projectsData: Project[] = [
   {
@@ -6,7 +13,7 @@ export const projectsData: Project[] = [
     title: "منوی دیجیتال کافه",
     description: "سیستم منوی QR با سفارش‌گیری و ثبت نظرات. حذف هزینه‌های چاپ و مدیریت لحظه‌ای.",
     techStack: ["Next.js", "Tailwind", "PostgreSQL"],
-    imageUrl: "/images/cafe.jpg", // فعلا فیک است
+    imageUrl: "/images/cafe.jpg",
     link: "#",
   },
   {

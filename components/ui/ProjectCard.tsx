@@ -3,8 +3,8 @@
 import { useRef } from "react";
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import Link from "next/link";
-import { Project } from "../../types";
-import { FiImage } from "react-icons/fi"; // آیکون اضافه شد
+import { Project } from "../../data/projects";
+import { FiImage } from "react-icons/fi";
 
 interface ProjectCardProps {
   project: Project;
@@ -57,12 +57,9 @@ export default function ProjectCard({ project }: ProjectCardProps) {
         <motion.div className="absolute inset-0 pointer-events-none z-0" style={{ background }} />
         <div className="relative z-10 flex flex-col h-full" style={{ transform: "translateZ(30px)" }}>
           
-          {/* ================= بخش تصویر (Empty State) ================= */}
           <div className="w-full h-48 bg-background rounded-xl mb-6 border border-white/5 flex flex-col items-center justify-center relative overflow-hidden group-hover:border-lavender/20 transition-colors">
-            {/* نور محو بنفش پس‌زمینه */}
             <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,rgba(184,161,255,0.8)_0%,transparent_70%)]"></div>
             
-            {/* آیکون و متن */}
             <div className="flex flex-col items-center gap-3 z-10 opacity-50 group-hover:opacity-100 transition-opacity duration-500">
               <div className="w-12 h-12 rounded-full bg-lavender/10 border border-lavender/20 flex items-center justify-center text-lavender group-hover:scale-110 transition-transform duration-500">
                 <FiImage size={20} />
@@ -73,7 +70,6 @@ export default function ProjectCard({ project }: ProjectCardProps) {
               </div>
             </div>
 
-            {/* خطوط تکنیکال (Decorative) */}
             <div className="absolute top-2 left-2 w-4 h-[1px] bg-white/10"></div>
             <div className="absolute top-2 left-2 w-[1px] h-4 bg-white/10"></div>
             <div className="absolute bottom-2 right-2 w-4 h-[1px] bg-white/10"></div>
