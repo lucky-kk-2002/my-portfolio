@@ -86,14 +86,14 @@ export default function CommandMenu() {
             <span className="text-sm font-medium text-silver group-hover:text-white transition-colors">تغییر تم</span>
           </button>
 
-          <a href="https://github.com/YOUR_USERNAME" target="_blank" rel="noreferrer" className="group flex flex-col items-center justify-center gap-3 p-6 rounded-2xl bg-white/5 border border-white/5 hover:bg-lavender/10 hover:border-lavender/30 transition-all duration-300">
+          <a href="https://github.com/lucky-kk-2002" target="_blank" rel="noreferrer" className="group flex flex-col items-center justify-center gap-3 p-6 rounded-2xl bg-white/5 border border-white/5 hover:bg-lavender/10 hover:border-lavender/30 transition-all duration-300">
             <FiGithub size={28} className="text-silverMuted group-hover:text-lavender transition-colors" />
             <span className="text-sm font-medium text-silver group-hover:text-white transition-colors">گیت‌هاب</span>
           </a>
 
         </div>
 
-        <a href="https://linkedin.com/in/YOUR_USERNAME" target="_blank" rel="noreferrer" className="mt-4 flex items-center justify-center gap-3 p-4 rounded-2xl bg-white/5 border border-white/5 hover:bg-lavender/10 hover:border-lavender/30 transition-all duration-300 group">
+        <a href="www.linkedin.com/in/kiarash-koolaiean-ab1780448" target="_blank" rel="noreferrer" className="mt-4 flex items-center justify-center gap-3 p-4 rounded-2xl bg-white/5 border border-white/5 hover:bg-lavender/10 hover:border-lavender/30 transition-all duration-300 group">
           <FiLinkedin size={24} className="text-silverMuted group-hover:text-lavender transition-colors" />
           <span className="text-sm font-medium text-silver group-hover:text-white transition-colors">مشاهده پروفایل لینکدین</span>
         </a>

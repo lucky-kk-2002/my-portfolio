@@ -89,10 +89,10 @@ export default function Footer() {
               من محصولاتی می‌سازم که نه تنها کار می‌کنند، بلکه تجربه‌ای بی‌نظیر خلق می‌کنند.
             </p>
             <div className="flex items-center gap-4 mt-2">
-              <a href="https://github.com/YOUR_USERNAME" target="_blank" rel="noreferrer" className="w-10 h-10 border border-white/10 flex items-center justify-center text-silverMuted hover:text-lavender hover:border-lavender transition-all duration-300">
+              <a href="https://github.com/lucky-kk-2002" target="_blank" rel="noreferrer" className="w-10 h-10 border border-white/10 flex items-center justify-center text-silverMuted hover:text-lavender hover:border-lavender transition-all duration-300">
                 <FiGithub size={18} />
               </a>
-              <a href="https://linkedin.com/in/YOUR_USERNAME" target="_blank" rel="noreferrer" className="w-10 h-10 border border-white/10 flex items-center justify-center text-silverMuted hover:text-lavender hover:border-lavender transition-all duration-300">
+              <a href="www.linkedin.com/in/kiarash-koolaiean-ab1780448" target="_blank" rel="noreferrer" className="w-10 h-10 border border-white/10 flex items-center justify-center text-silverMuted hover:text-lavender hover:border-lavender transition-all duration-300">
                 <FiLinkedin size={18} />
               </a>
               <a href="mailto:hello@example.com" className="w-10 h-10 border border-white/10 flex items-center justify-center text-silverMuted hover:text-lavender hover:border-lavender transition-all duration-300">

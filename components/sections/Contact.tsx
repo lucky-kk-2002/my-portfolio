@@ -37,13 +37,13 @@ export default function Contact() {
               </p>
 
               <div className="flex flex-col gap-4 md:gap-6 w-full max-w-md">
-                <a href="mailto:hello@example.com" className="group flex items-center justify-start gap-4 p-3 md:p-4 rounded-xl border border-white/5 bg-surface/50 hover:bg-surface hover:border-lavender/30 transition-all duration-300">
+                <a href="mailto:Kiarash.kool2002@gmail.com" className="group flex items-center justify-start gap-4 p-3 md:p-4 rounded-xl border border-white/5 bg-surface/50 hover:bg-surface hover:border-lavender/30 transition-all duration-300">
                   <div className="w-10 h-10 md:w-12 md:h-12 rounded-lg bg-lavender/10 flex items-center justify-center text-lavender group-hover:scale-110 transition-transform">
                     <FiMail size={18} className="md:w-5 md:h-5" />
                   </div>
                   <div className="text-right">
                     <p className="text-[10px] md:text-xs text-silverMuted mb-1">ارسال ایمیل</p>
-                    <p className="text-silver text-sm md:text-base font-mono">hello@example.com</p>
+                    <p className="text-silver text-sm md:text-base font-mono">Kiarash.kool2002@gmail.com</p>
                   </div>
                 </a>
 
@@ -53,16 +53,16 @@ export default function Contact() {
                   </div>
                   <div className="text-right">
                     <p className="text-[10px] md:text-xs text-silverMuted mb-1">موقعیت مکانی</p>
-                    <p className="text-silver text-sm md:text-base">تهران، ایران</p>
+                    <p className="text-silver text-sm md:text-base">مازندران، ایران</p>
                   </div>
                 </div>
               </div>
 
               <div className="flex gap-3 md:gap-4 mt-8 md:mt-12">
-                <a href="#" className="w-10 h-10 md:w-12 md:h-12 rounded-full border border-white/10 flex items-center justify-center text-silverMuted hover:text-lavender hover:border-lavender/50 hover:bg-lavender/5 transition-all duration-300">
+                <a href="https://github.com/lucky-kk-2002" className="w-10 h-10 md:w-12 md:h-12 rounded-full border border-white/10 flex items-center justify-center text-silverMuted hover:text-lavender hover:border-lavender/50 hover:bg-lavender/5 transition-all duration-300">
                   <FiGithub size={18} className="md:w-5 md:h-5" />
                 </a>
-                <a href="#" className="w-10 h-10 md:w-12 md:h-12 rounded-full border border-white/10 flex items-center justify-center text-silverMuted hover:text-lavender hover:border-lavender/50 hover:bg-lavender/5 transition-all duration-300">
+                <a href="www.linkedin.com/in/kiarash-koolaiean-ab1780448" className="w-10 h-10 md:w-12 md:h-12 rounded-full border border-white/10 flex items-center justify-center text-silverMuted hover:text-lavender hover:border-lavender/50 hover:bg-lavender/5 transition-all duration-300">
                   <FiLinkedin size={18} className="md:w-5 md:h-5" />
                 </a>
                 <a href="#" className="w-10 h-10 md:w-12 md:h-12 rounded-full border border-white/10 flex items-center justify-center text-silverMuted hover:text-lavender hover:border-lavender/50 hover:bg-lavender/5 transition-all duration-300">
