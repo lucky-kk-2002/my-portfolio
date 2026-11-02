@@ -4,11 +4,13 @@ import Link from "next/link";
 import { FiGithub, FiLinkedin, FiMail, FiArrowUpRight, FiActivity, FiClock } from "react-icons/fi";
 import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
+import { usePathname } from "next/navigation"; // اضافه شد
 
 export default function Footer() {
   const [time, setTime] = useState("");
-  const { theme, resolvedTheme } = useTheme();
+  const { resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const pathname = usePathname(); // گرفتن آدرس فعلی
 
   useEffect(() => {
     setMounted(true);
@@ -19,7 +21,9 @@ export default function Footer() {
     return () => clearInterval(timer);
   }, []);
 
-  // جلوگیری از خطای Hydration (زمانی که هنوز تم مشخص نیست)
+  // اگر در صفحه پلنر هستیم، فوتر را نمایش نده
+  if (pathname === "/planner") return null;
+
   if (!mounted) {
     return <footer className="w-full relative bg-background border-t border-white/10 min-h-[400px]"></footer>;
   }
@@ -63,7 +67,7 @@ export default function Footer() {
           </div>
 
           <a 
-            href="mailto:hello@example.com" 
+            href="mailto:Kiarash.kool2002@gmail.com" 
             className="group relative inline-flex items-center justify-center px-10 py-5 bg-transparent border border-lavender text-white font-bold tracking-widest text-sm overflow-hidden"
           >
             <span className="absolute inset-0 w-full h-full bg-lavender/10 -translate-x-full group-hover:translate-x-0 transition-transform duration-500 ease-out"></span>
@@ -92,10 +96,10 @@ export default function Footer() {
               <a href="https://github.com/lucky-kk-2002" target="_blank" rel="noreferrer" className="w-10 h-10 border border-white/10 flex items-center justify-center text-silverMuted hover:text-lavender hover:border-lavender transition-all duration-300">
                 <FiGithub size={18} />
               </a>
-              <a href="www.linkedin.com/in/kiarash-koolaiean-ab1780448" target="_blank" rel="noreferrer" className="w-10 h-10 border border-white/10 flex items-center justify-center text-silverMuted hover:text-lavender hover:border-lavender transition-all duration-300">
+              <a href="https://linkedin.com/in/YOUR_LINKEDIN_ID" target="_blank" rel="noreferrer" className="w-10 h-10 border border-white/10 flex items-center justify-center text-silverMuted hover:text-lavender hover:border-lavender transition-all duration-300">
                 <FiLinkedin size={18} />
               </a>
-              <a href="mailto:hello@example.com" className="w-10 h-10 border border-white/10 flex items-center justify-center text-silverMuted hover:text-lavender hover:border-lavender transition-all duration-300">
+              <a href="mailto:Kiarash.kool2002@gmail.com" className="w-10 h-10 border border-white/10 flex items-center justify-center text-silverMuted hover:text-lavender hover:border-lavender transition-all duration-300">
                 <FiMail size={18} />
               </a>
             </div>
