@@ -2,7 +2,11 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { FiArrowRight, FiClock, FiCheckSquare, FiCalendar, FiPlus, FiTrash2, FiMove, FiImage, FiPlay, FiPause, FiRotateCcw, FiChevronDown, FiChevronUp, FiCloud, FiMapPin, FiMaximize2, FiMinimize2 } from "react-icons/fi";
+import { 
+  FiArrowRight, FiClock, FiCheckSquare, FiCalendar, FiPlus, FiTrash2, 
+  FiMove, FiImage, FiPlay, FiPause, FiRotateCcw, FiChevronDown, FiChevronUp, 
+  FiCloud, FiMapPin, FiMaximize2, FiMinimize2, FiActivity, FiMusic, FiFileText, FiEye, FiEyeOff, FiX 
+} from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
 import { getColorSync } from "colorthief";
 
@@ -11,7 +15,7 @@ import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, us
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, rectSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
-type WidgetType = "clock" | "todo" | "calendar" | "pomodoro" | "weather";
+type WidgetType = "clock" | "todo" | "calendar" | "pomodoro" | "weather" | "habit" | "ambient" | "notes";
 
 interface Widget {
   id: string;
@@ -25,6 +29,12 @@ interface Task {
   description?: string;
   dueDate?: string;
   completed: boolean;
+}
+
+interface Note {
+  id: number;
+  text: string;
+  color: string;
 }
 
 function getWeatherInfo(code: number) {
@@ -93,13 +103,38 @@ function getDateStatus(dueDate: string) {
 export default function PlannerPage() {
   const [widgets, setWidgets] = useState<Widget[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [notes, setNotes] = useState<Note[]>([]);
+  const [habits, setHabits] = useState<string[]>([]);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
+  const [isFocusMode, setIsFocusMode] = useState(false);
 
   const [bgImage, setBgImage] = useState<string | null>(null);
   const [accentColor, setAccentColor] = useState("#B8A1FF");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // === Ambient Sound ===
+  const [ambientPlaying, setAmbientPlaying] = useState<string | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const soundUrls = {
+    rain: "https://www.soundjay.com/nature/rain-01.mp3",
+    cafe: "https://www.soundjay.com/human/crowd-talking-1.mp3",
+    forest: "https://www.soundjay.com/nature/forest-01.mp3"
+  };
+
+  useEffect(() => {
+    if (audioRef.current) {
+      if (ambientPlaying) {
+        audioRef.current.src = soundUrls[ambientPlaying as keyof typeof soundUrls];
+        audioRef.current.loop = true;
+        audioRef.current.play().catch(e => console.log("Audio play blocked", e));
+      } else {
+        audioRef.current.pause();
+      }
+    }
+  }, [ambientPlaying]);
+
+  // === ساعت ===
   const [time, setTime] = useState<Date | null>(null);
   useEffect(() => {
     setTime(new Date());
@@ -107,6 +142,7 @@ export default function PlannerPage() {
     return () => clearInterval(timer);
   }, []);
 
+  // === آب‌وهوا ===
   const [weather, setWeather] = useState<{ temp: number; code: number; location: string } | null>(null);
   const [weatherLoading, setWeatherLoading] = useState(false);
 
@@ -116,9 +152,7 @@ export default function PlannerPage() {
       try {
         const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`);
         const data = await res.json();
-        if (data.current_weather) {
-          setWeather({ temp: Math.round(data.current_weather.temperature), code: data.current_weather.weathercode, location: locName });
-        }
+        if (data.current_weather) setWeather({ temp: Math.round(data.current_weather.temperature), code: data.current_weather.weathercode, location: locName });
       } catch (e) { console.error(e); } finally { setWeatherLoading(false); }
     };
 
@@ -132,6 +166,7 @@ export default function PlannerPage() {
     }
   }, [widgets, weather]);
 
+  // === پومودورو ===
   const [pomoTime, setPomoTime] = useState(25 * 60);
   const [pomoActive, setPomoActive] = useState(false);
   const [pomoMode, setPomoMode] = useState<"work" | "break">("work");
@@ -161,6 +196,7 @@ export default function PlannerPage() {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
+  // === تقویم ===
   const renderCalendar = () => {
     const now = new Date(); const year = now.getFullYear(); const month = now.getMonth(); const today = now.getDate();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
@@ -175,12 +211,56 @@ export default function PlannerPage() {
     return days;
   };
 
+  // === هبیت ترکر ===
+  const renderHabits = () => {
+    const days = [];
+    for (let i = 27; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const dateStr = d.toISOString().split('T')[0];
+      const isDone = habits.includes(dateStr);
+      days.push(
+        <div 
+          key={dateStr} 
+          onClick={() => toggleHabit(dateStr)}
+          title={d.toLocaleDateString('fa-IR')}
+          className={`w-4 h-4 sm:w-5 sm:h-5 rounded-sm cursor-pointer transition-colors ${isDone ? 'bg-green-500' : 'bg-white/10 hover:bg-white/20'}`}
+        />
+      );
+    }
+    return days;
+  };
+
+  const toggleHabit = (date: string) => {
+    if (habits.includes(date)) setHabits(habits.filter(h => h !== date));
+    else setHabits([...habits, date]);
+  };
+
+  // === یادداشت‌ها ===
+  const [newNoteText, setNewNoteText] = useState("");
+  const [newNoteColor, setNewNoteColor] = useState("#fef08a");
+  const noteColors = ["#fef08a", "#fbcfe8", "#bfdbfe", "#bbf7d0", "#e5e7eb"];
+
+  const addNote = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newNoteText.trim()) return;
+    setNotes([...notes, { id: Date.now(), text: newNoteText, color: newNoteColor }]);
+    setNewNoteText("");
+  };
+
+  const deleteNote = (id: number) => setNotes(notes.filter(n => n.id !== id));
+
+  // === بارگذاری و ذخیره‌سازی ===
   useEffect(() => {
     setIsMounted(true);
-    const savedWidgets = localStorage.getItem("planner_widgets_v5");
+    const savedWidgets = localStorage.getItem("planner_widgets_v6");
     if (savedWidgets) try { setWidgets(JSON.parse(savedWidgets)); } catch (e) {}
     const savedTasks = localStorage.getItem("planner_tasks");
     if (savedTasks) try { setTasks(JSON.parse(savedTasks)); } catch (e) {}
+    const savedNotes = localStorage.getItem("planner_notes");
+    if (savedNotes) try { setNotes(JSON.parse(savedNotes)); } catch (e) {}
+    const savedHabits = localStorage.getItem("planner_habits");
+    if (savedHabits) try { setHabits(JSON.parse(savedHabits)); } catch (e) {}
     const savedBg = localStorage.getItem("planner_bg");
     if (savedBg) setBgImage(savedBg);
     const savedColor = localStorage.getItem("planner_color");
@@ -189,12 +269,14 @@ export default function PlannerPage() {
 
   useEffect(() => {
     if (isMounted) {
-      localStorage.setItem("planner_widgets_v5", JSON.stringify(widgets));
+      localStorage.setItem("planner_widgets_v6", JSON.stringify(widgets));
       localStorage.setItem("planner_tasks", JSON.stringify(tasks));
+      localStorage.setItem("planner_notes", JSON.stringify(notes));
+      localStorage.setItem("planner_habits", JSON.stringify(habits));
       if (bgImage) localStorage.setItem("planner_bg", bgImage);
       localStorage.setItem("planner_color", accentColor);
     }
-  }, [widgets, tasks, bgImage, accentColor, isMounted]);
+  }, [widgets, tasks, notes, habits, bgImage, accentColor, isMounted]);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -253,20 +335,55 @@ export default function PlannerPage() {
 
   const incompleteTasksCount = tasks.filter(t => !t.completed).length;
 
-  // اگر هنوز در سمت کلاینت لود نشده، یک صفحه لودینگ ساده نشان بده تا مطمئن شویم صفحه خالی نیست
-  if (!isMounted) return (
-    <div className="min-h-screen bg-[#05010A] flex items-center justify-center text-white font-mono">
-      LOADING PLANNER...
-    </div>
-  );
+  if (!isMounted) return <div className="min-h-screen bg-[#05010A] flex items-center justify-center text-white font-mono">LOADING PLANNER...</div>;
 
+  // ==========================================
+  // حالت تمرکز (Focus Mode)
+  // ==========================================
+  if (isFocusMode) {
+    return (
+      <div className="planner-wrapper min-h-screen bg-[#05010A] flex flex-col items-center justify-center relative overflow-hidden" dir="rtl">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-lavender/10 blur-[100px] rounded-full pointer-events-none"></div>
+        
+        <button onClick={() => setIsFocusMode(false)} className="absolute top-8 right-8 text-white bg-white/10 hover:bg-white/20 p-3 rounded-full transition-colors z-50">
+          <FiX size={24} />
+        </button>
+
+        <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="flex flex-col items-center z-10">
+          <h2 className="text-2xl text-silverMuted mb-12 tracking-widest uppercase font-mono">FOCUS_MODE</h2>
+          <div className="relative w-64 h-64 md:w-80 md:h-80 flex items-center justify-center">
+            <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+              <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="4" />
+              <circle cx="50" cy="50" r="45" fill="none" stroke={accentColor} strokeWidth="4" strokeLinecap="round" strokeDasharray="282.7" strokeDashoffset={282.7 - (282.7 * (pomoTime / (pomoMode === "work" ? 25 * 60 : 5 * 60)))} className="transition-all duration-1000 ease-linear" style={{ filter: `drop-shadow(0 0 12px ${accentColor})` }} />
+            </svg>
+            <div className="absolute flex flex-col items-center">
+              <span className="text-6xl md:text-7xl font-mono text-white">{formatPomoTime()}</span>
+              <span className="text-sm text-silverMuted uppercase tracking-widest mt-2">{pomoMode === "work" ? "FOCUS" : "BREAK"}</span>
+            </div>
+          </div>
+          <div className="flex gap-6 mt-12">
+            <button onClick={togglePomo} className="w-16 h-16 rounded-full flex items-center justify-center text-background transition-transform hover:scale-110 shadow-lg" style={{ backgroundColor: accentColor, boxShadow: `0 0 30px ${accentColor}80` }}>
+              {pomoActive ? <FiPause size={28} /> : <FiPlay size={28} className="ml-1" />}
+            </button>
+            <button onClick={resetPomo} className="w-16 h-16 rounded-full flex items-center justify-center bg-white/5 text-silver hover:bg-white/10 transition-colors border border-white/10">
+              <FiRotateCcw size={24} />
+            </button>
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
+
+  // ==========================================
+  // حالت عادی
+  // ==========================================
   return (
-    <div className="min-h-screen relative flex flex-col" dir="rtl">
+    <div className="planner-wrapper min-h-screen relative flex flex-col" dir="rtl">
       
-      {/* لایه پس‌زمینه */}
+      {/* پس‌زمینه و لایه تاریک (افزایش شفافیت برای خوانایی بهتر) */}
       <div className="absolute inset-0 overflow-hidden z-0 pointer-events-none">
         <div className="absolute inset-0 transition-opacity duration-700" style={{ backgroundColor: bgImage ? "transparent" : "#05010A", backgroundImage: bgImage ? `url(${bgImage})` : "none", backgroundSize: "cover", backgroundPosition: "center" }}></div>
-        <div className={`absolute inset-0 transition-opacity duration-700 ${bgImage ? "bg-black/70 backdrop-blur-sm" : "bg-transparent"}`}></div>
+        <div className={`absolute inset-0 transition-opacity duration-700 ${bgImage ? "bg-black/85 backdrop-blur-md" : "bg-transparent"}`}></div>
       </div>
 
       <header className="w-full px-4 py-4 md:px-6 md:py-6 flex justify-between items-center z-10 border-b border-white/10 bg-black/20 backdrop-blur-md">
@@ -275,11 +392,17 @@ export default function PlannerPage() {
             <FiArrowRight /><span className="hidden sm:inline">بازگشت به سایت</span>
           </Link>
           <button onClick={() => fileInputRef.current?.click()} className="flex items-center gap-2 text-xs md:text-sm text-silverMuted hover:text-white transition-colors bg-white/5 hover:bg-white/10 px-3 py-1.5 rounded-lg border border-white/10">
-            <FiImage /><span>تغییر پس‌زمینه</span>
+            <FiImage /><span className="hidden sm:inline">تغییر پس‌زمینه</span>
           </button>
           <input type="file" accept="image/*" ref={fileInputRef} onChange={handleImageUpload} className="hidden" />
         </div>
-        <h1 className="font-mono text-xs md:text-sm tracking-widest text-white">MODULAR_PLANNER</h1>
+        
+        <div className="flex items-center gap-3">
+          <button onClick={() => setIsFocusMode(true)} className="flex items-center gap-2 text-xs md:text-sm text-lavender hover:text-white transition-colors bg-lavender/10 hover:bg-lavender/20 px-4 py-1.5 rounded-lg border border-lavender/30">
+            <FiEye size={16} /> <span className="hidden sm:inline">حالت تمرکز</span>
+          </button>
+          <h1 className="font-mono text-xs md:text-sm tracking-widest text-white hidden sm:block">MODULAR_PLANNER</h1>
+        </div>
       </header>
 
       <div className="flex-1 p-4 md:p-6 relative z-10">
@@ -302,7 +425,7 @@ export default function PlannerPage() {
                   <SortableWidget key={widget.id} widget={widget} onRemove={removeWidget} onToggleSize={toggleSize} accentColor={accentColor}>
                     
                     {widget.type === "clock" && (
-                      <div className={`bg-[#0A0A0F]/80 backdrop-blur-xl border border-white/10 rounded-2xl p-4 md:p-6 transition-all h-full shadow-2xl ${widget.isWide ? 'flex flex-col justify-center items-center' : ''}`} style={{ boxShadow: `0 0 20px ${accentColor}20` }}>
+                      <div className={`bg-[#0A0A0F]/90 backdrop-blur-xl border border-white/10 rounded-2xl p-4 md:p-6 transition-all h-full shadow-2xl ${widget.isWide ? 'flex flex-col justify-center items-center' : ''}`} style={{ boxShadow: `0 0 20px ${accentColor}20` }}>
                         <div className="flex items-center gap-2 md:gap-3 mb-4 md:mb-6 border-b border-white/10 pb-3 md:pb-4 w-full">
                           <FiClock size={18} style={{ color: accentColor }} /> <span className="font-bold text-sm md:text-base text-white">ساعت زنده</span>
                         </div>
@@ -316,7 +439,7 @@ export default function PlannerPage() {
                     )}
 
                     {widget.type === "weather" && (
-                      <div className={`bg-[#0A0A0F]/80 backdrop-blur-xl border border-white/10 rounded-2xl p-4 md:p-6 transition-all flex flex-col shadow-2xl ${widget.isWide ? 'sm:flex-row sm:items-center sm:justify-between sm:p-10' : ''}`} style={{ boxShadow: `0 0 20px ${accentColor}20` }}>
+                      <div className={`bg-[#0A0A0F]/90 backdrop-blur-xl border border-white/10 rounded-2xl p-4 md:p-6 transition-all flex flex-col shadow-2xl ${widget.isWide ? 'sm:flex-row sm:items-center sm:justify-between sm:p-10' : ''}`} style={{ boxShadow: `0 0 20px ${accentColor}20` }}>
                         <div className={`flex items-center gap-2 md:gap-3 mb-4 border-b border-white/10 pb-3 w-full ${widget.isWide ? 'sm:border-none sm:mb-0 sm:pb-0 sm:w-auto' : ''}`}>
                           <FiCloud size={18} style={{ color: accentColor }} /> <span className="font-bold text-sm md:text-base text-white">آب و هوا</span>
                         </div>
@@ -344,7 +467,7 @@ export default function PlannerPage() {
                     )}
 
                     {widget.type === "todo" && (
-                      <div className={`bg-[#0A0A0F]/80 backdrop-blur-xl border border-white/10 rounded-2xl p-4 md:p-6 transition-all flex flex-col shadow-2xl h-[400px]`} style={{ boxShadow: `0 0 20px ${accentColor}20` }}>
+                      <div className={`bg-[#0A0A0F]/90 backdrop-blur-xl border border-white/10 rounded-2xl p-4 md:p-6 transition-all flex flex-col shadow-2xl h-[400px]`} style={{ boxShadow: `0 0 20px ${accentColor}20` }}>
                         <div className="flex items-center justify-between mb-3 border-b border-white/10 pb-3">
                           <div className="flex items-center gap-2 md:gap-3">
                             <FiCheckSquare size={18} style={{ color: accentColor }} /> <span className="font-bold text-sm md:text-base text-white">تسک‌لیست</span>
@@ -395,7 +518,7 @@ export default function PlannerPage() {
                     )}
 
                     {widget.type === "calendar" && (
-                      <div className={`bg-[#0A0A0F]/80 backdrop-blur-xl border border-white/10 rounded-2xl p-4 md:p-6 transition-all shadow-2xl`} style={{ boxShadow: `0 0 20px ${accentColor}20` }}>
+                      <div className={`bg-[#0A0A0F]/90 backdrop-blur-xl border border-white/10 rounded-2xl p-4 md:p-6 transition-all shadow-2xl`} style={{ boxShadow: `0 0 20px ${accentColor}20` }}>
                         <div className="flex items-center justify-between mb-4 border-b border-white/10 pb-3 md:pb-4">
                           <div className="flex items-center gap-2 md:gap-3"><FiCalendar size={18} style={{ color: accentColor }} /> <span className="font-bold text-sm md:text-base text-white">تقویم</span></div>
                           <span className="text-xs text-silverMuted font-mono">{new Date().toLocaleDateString('fa-IR', { month: 'long', year: 'numeric' })}</span>
@@ -408,7 +531,7 @@ export default function PlannerPage() {
                     )}
 
                     {widget.type === "pomodoro" && (
-                      <div className={`bg-[#0A0A0F]/80 backdrop-blur-xl border border-white/10 rounded-2xl p-4 md:p-6 transition-all flex flex-col items-center shadow-2xl ${widget.isWide ? 'sm:flex-row sm:justify-around sm:p-8' : ''}`} style={{ boxShadow: `0 0 20px ${accentColor}20` }}>
+                      <div className={`bg-[#0A0A0F]/90 backdrop-blur-xl border border-white/10 rounded-2xl p-4 md:p-6 transition-all flex flex-col items-center shadow-2xl ${widget.isWide ? 'sm:flex-row sm:justify-around sm:p-8' : ''}`} style={{ boxShadow: `0 0 20px ${accentColor}20` }}>
                         <div className={`w-full flex items-center justify-between mb-4 border-b border-white/10 pb-3 md:pb-4 ${widget.isWide ? 'sm:absolute sm:top-4 sm:left-4 sm:right-4' : ''}`}>
                           <div className="flex items-center gap-2 md:gap-3"><FiClock size={18} style={{ color: accentColor }} /> <span className="font-bold text-sm md:text-base text-white">پومودورو</span></div>
                           <button onClick={switchPomoMode} className="text-xs px-2 py-1 rounded bg-white/5 hover:bg-white/10 transition-colors text-silverMuted">{pomoMode === "work" ? "زمان استراحت" : "زمان کار"}</button>
@@ -430,6 +553,81 @@ export default function PlannerPage() {
                       </div>
                     )}
 
+                    {widget.type === "habit" && (
+                      <div className={`bg-[#0A0A0F]/90 backdrop-blur-xl border border-white/10 rounded-2xl p-4 md:p-6 transition-all shadow-2xl`} style={{ boxShadow: `0 0 20px ${accentColor}20` }}>
+                        <div className="flex items-center gap-2 md:gap-3 mb-4 border-b border-white/10 pb-3">
+                          <FiActivity size={18} style={{ color: accentColor }} /> <span className="font-bold text-sm md:text-base text-white">ردیاب عادت (۲۸ روز اخیر)</span>
+                        </div>
+                        <div className="flex flex-wrap gap-1.5 justify-center">
+                          {renderHabits()}
+                        </div>
+                      </div>
+                    )}
+
+                    {widget.type === "ambient" && (
+                      <div className={`bg-[#0A0A0F]/90 backdrop-blur-xl border border-white/10 rounded-2xl p-4 md:p-6 transition-all shadow-2xl`} style={{ boxShadow: `0 0 20px ${accentColor}20` }}>
+                        <div className="flex items-center gap-2 md:gap-3 mb-4 border-b border-white/10 pb-3">
+                          <FiMusic size={18} style={{ color: accentColor }} /> <span className="font-bold text-sm md:text-base text-white">صدای محیط</span>
+                        </div>
+                        <div className="flex gap-2">
+                          {[
+                            { id: 'rain', label: 'باران', icon: '🌧️' },
+                            { id: 'cafe', label: 'کافه', icon: '☕' },
+                            { id: 'forest', label: 'جنگل', icon: '🌲' }
+                          ].map(sound => (
+                            <button 
+                              key={sound.id}
+                              onClick={() => setAmbientPlaying(ambientPlaying === sound.id ? null : sound.id)}
+                              className={`flex-1 flex flex-col items-center gap-2 p-3 rounded-xl border transition-all ${ambientPlaying === sound.id ? 'bg-lavender/20 border-lavender text-white' : 'bg-white/5 border-white/10 text-silverMuted hover:bg-white/10'}`}
+                            >
+                              <span className="text-2xl">{sound.icon}</span>
+                              <span className="text-[10px]">{sound.label}</span>
+                            </button>
+                          ))}
+                        </div>
+                        <audio ref={audioRef} className="hidden" />
+                      </div>
+                    )}
+
+                    {widget.type === "notes" && (
+                      <div className={`bg-[#0A0A0F]/90 backdrop-blur-xl border border-white/10 rounded-2xl p-4 md:p-6 transition-all flex flex-col shadow-2xl min-h-[300px]`} style={{ boxShadow: `0 0 20px ${accentColor}20` }}>
+                        <div className="flex items-center gap-2 md:gap-3 mb-4 border-b border-white/10 pb-3">
+                          <FiFileText size={18} style={{ color: accentColor }} /> <span className="font-bold text-sm md:text-base text-white">یادداشت سریع</span>
+                        </div>
+                        
+                        <form onSubmit={addNote} className="flex flex-col gap-2 mb-4 shrink-0">
+                          <textarea 
+                            value={newNoteText} onChange={(e) => setNewNoteText(e.target.value)} placeholder="متن یادداشت..."
+                            rows={2} className="w-full bg-background/50 border border-white/10 rounded-lg px-2 py-1.5 text-xs text-white focus:outline-none resize-none"
+                          />
+                          <div className="flex justify-between items-center">
+                            <div className="flex gap-1">
+                              {noteColors.map(c => (
+                                <button 
+                                  type="button" key={c} onClick={() => setNewNoteColor(c)}
+                                  className={`w-5 h-5 rounded-full border-2 ${newNoteColor === c ? 'border-white' : 'border-transparent'}`} 
+                                  style={{ backgroundColor: c }}
+                                />
+                              ))}
+                            </div>
+                            <button type="submit" className="px-4 py-1 rounded-lg text-xs font-bold text-background" style={{ backgroundColor: accentColor }}>افزودن</button>
+                          </div>
+                        </form>
+
+                        <div className={`flex flex-col gap-2 overflow-y-auto flex-1 pr-1 custom-scrollbar ${widget.isWide ? 'sm:grid sm:grid-cols-2' : ''}`}>
+                          {notes.map(note => (
+                            <div key={note.id} className="relative p-3 rounded-lg shadow-md text-black text-xs min-h-[60px] flex flex-col justify-between group/note">
+                              <div className="absolute inset-0 rounded-lg -z-10" style={{ backgroundColor: note.color }}></div>
+                              <p className="break-words">{note.text}</p>
+                              <button onClick={() => deleteNote(note.id)} className="self-end mt-2 opacity-0 group-hover/note:opacity-100 transition-opacity">
+                                <FiTrash2 size={12} />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
                   </SortableWidget>
                 ))}
               </AnimatePresence>
@@ -438,18 +636,23 @@ export default function PlannerPage() {
         </DndContext>
       </div>
 
-      {/* ======================================================= */}
-      {/* دکمه شناور (FAB) - کاملاً مستقل و با استایل داخلی قرمز */}
-      {/* ======================================================= */}
-      <div style={{ position: 'fixed', bottom: '30px', left: '30px', zIndex: 999999 }}>
-        
+      {/* دکمه شناور (FAB) */}
+      <div style={{ position: 'fixed', bottom: '30px', left: '30px', zIndex: 9999999 }}>
         {isMenuOpen && (
-          <div style={{ position: 'absolute', bottom: '70px', left: '0', backgroundColor: '#0A0A0F', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '12px', padding: '8px', display: 'flex', flexDirection: 'column', gap: '8px', width: '180px', boxShadow: '0 10px 30px rgba(0,0,0,0.5)' }}>
-            <button onClick={() => addWidget("clock")} className="flex items-center gap-3 p-3 hover:bg-white/10 rounded-lg text-right text-sm text-white transition-colors"><FiClock size={16} /> ساعت زنده</button>
-            <button onClick={() => addWidget("todo")} className="flex items-center gap-3 p-3 hover:bg-white/10 rounded-lg text-right text-sm text-white transition-colors"><FiCheckSquare size={16} /> تسک‌لیست</button>
-            <button onClick={() => addWidget("calendar")} className="flex items-center gap-3 p-3 hover:bg-white/10 rounded-lg text-right text-sm text-white transition-colors"><FiCalendar size={16} /> تقویم</button>
-            <button onClick={() => addWidget("pomodoro")} className="flex items-center gap-3 p-3 hover:bg-white/10 rounded-lg text-right text-sm text-white transition-colors"><FiPlay size={16} /> تایمر پومودورو</button>
-            <button onClick={() => addWidget("weather")} className="flex items-center gap-3 p-3 hover:bg-white/10 rounded-lg text-right text-sm text-white transition-colors"><FiCloud size={16} /> آب و هوا</button>
+          <div style={{ 
+            position: 'absolute', bottom: '70px', left: '0', 
+            backgroundColor: '#0A0A0F', border: '1px solid rgba(255,255,255,0.2)', 
+            borderRadius: '12px', padding: '8px', display: 'flex', flexDirection: 'column', 
+            gap: '8px', width: '200px', boxShadow: '0 10px 30px rgba(0,0,0,0.5)' 
+          }}>
+            <button onClick={() => addWidget("clock")} className="flex items-center gap-3 p-2 hover:bg-white/10 rounded-lg text-right text-sm text-white transition-colors"><FiClock size={16} /> ساعت زنده</button>
+            <button onClick={() => addWidget("todo")} className="flex items-center gap-3 p-2 hover:bg-white/10 rounded-lg text-right text-sm text-white transition-colors"><FiCheckSquare size={16} /> تسک‌لیست</button>
+            <button onClick={() => addWidget("calendar")} className="flex items-center gap-3 p-2 hover:bg-white/10 rounded-lg text-right text-sm text-white transition-colors"><FiCalendar size={16} /> تقویم</button>
+            <button onClick={() => addWidget("pomodoro")} className="flex items-center gap-3 p-2 hover:bg-white/10 rounded-lg text-right text-sm text-white transition-colors"><FiPlay size={16} /> تایمر پومودورو</button>
+            <button onClick={() => addWidget("weather")} className="flex items-center gap-3 p-2 hover:bg-white/10 rounded-lg text-right text-sm text-white transition-colors"><FiCloud size={16} /> آب و هوا</button>
+            <button onClick={() => addWidget("habit")} className="flex items-center gap-3 p-2 hover:bg-white/10 rounded-lg text-right text-sm text-white transition-colors"><FiActivity size={16} /> ردیاب عادت</button>
+            <button onClick={() => addWidget("ambient")} className="flex items-center gap-3 p-2 hover:bg-white/10 rounded-lg text-right text-sm text-white transition-colors"><FiMusic size={16} /> صدای محیط</button>
+            <button onClick={() => addWidget("notes")} className="flex items-center gap-3 p-2 hover:bg-white/10 rounded-lg text-right text-sm text-white transition-colors"><FiFileText size={16} /> یادداشت سریع</button>
           </div>
         )}
 
@@ -457,11 +660,11 @@ export default function PlannerPage() {
           onClick={() => setIsMenuOpen(!isMenuOpen)} 
           style={{ 
             width: '60px', height: '60px', borderRadius: '50%', 
-            backgroundColor: '#ef4444', /* قرمز موقت */
-            border: '3px solid white',
+            backgroundColor: accentColor, /* رنگ داینامیک */
+            border: '2px solid white',
             display: 'flex', alignItems: 'center', justifyContent: 'center', 
             color: 'white', cursor: 'pointer',
-            boxShadow: '0 0 20px rgba(239, 68, 68, 0.8)'
+            boxShadow: `0 0 20px ${accentColor}80`
           }}
         >
           <FiPlus size={30} style={{ transform: isMenuOpen ? 'rotate(45deg)' : 'none', transition: '0.3s' }} />

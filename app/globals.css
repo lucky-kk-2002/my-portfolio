@@ -11,6 +11,11 @@
   --font-sans: var(--font-vazirmatn), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-jetbrains), ui-monospace, SFMono-Regular, monospace;
 }
+/* اصلاح رنگ متن‌ها در صفحه پلنر برای جلوگیری از تداخل با تم روشن */
+html.light .planner-wrapper .text-white { color: #ffffff !important; }
+html.light .planner-wrapper .text-silver { color: #E2E2E2 !important; }
+html.light .planner-wrapper .text-silverMuted { color: #8E8E9F !important; }
+html.light .planner-wrapper .text-lavender { color: #B8A1FF !important; }
 
 html {
   scroll-behavior: smooth;
